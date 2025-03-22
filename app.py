@@ -68,3 +68,4 @@ if uploaded_files:
                 st.error("❌ No solution found!")
         except Exception as e:
             st.error(f"⚠️ Error solving equation: {e}")
+            st.error(f"⚠️ Extracted Equation: {cleaned_equation}")
