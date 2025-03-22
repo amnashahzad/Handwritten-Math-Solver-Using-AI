@@ -50,25 +50,22 @@ if uploaded_files:
         st.success(f"**Extracted Equation:** {cleaned_equation}")
 
         try:
-            # ✅ Fix for tuple issue - Separate LHS and RHS properly
             x = symbols('x')
 
-            # ✅ Equal sign ke bina equation ko handle karein
+            # ✅ Agar '=' ke baad kuch na ho toh `x` ke equal bana do
             if '=' in cleaned_equation:
                 lhs, rhs = cleaned_equation.split('=')
+                if not rhs.strip():
+                    rhs = 'x'  # ✅ Missing RHS ko handle karo
                 sympy_eq = Eq(sympify(lhs), sympify(rhs))
             else:
                 sympy_eq = sympify(cleaned_equation)
-                sympy_eq = Eq(sympy_eq,0) #solve for equation equals zero.
 
             # ✅ Solve the equation
             solution = solve(sympy_eq, x)
 
             if solution:
-                if isinstance(solution, list):
-                    st.success(f"**Solution:** x = {solution[0]}")
-                else:
-                    st.success(f"**Solution:** x = {solution}")
+                st.success(f"**Solution:** x = {solution[0]}")
             else:
                 st.error("❌ No solution found!")
         except Exception as e:
