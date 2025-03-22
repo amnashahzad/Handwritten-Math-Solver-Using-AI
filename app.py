@@ -59,12 +59,16 @@ if uploaded_files:
                 sympy_eq = Eq(sympify(lhs), sympify(rhs))
             else:
                 sympy_eq = sympify(cleaned_equation)
+                sympy_eq = Eq(sympy_eq,0) #solve for equation equals zero.
 
             # ✅ Solve the equation
             solution = solve(sympy_eq, x)
 
             if solution:
-                st.success(f"**Solution:** x = {solution[0]}")
+                if isinstance(solution, list):
+                    st.success(f"**Solution:** x = {solution[0]}")
+                else:
+                    st.success(f"**Solution:** x = {solution}")
             else:
                 st.error("❌ No solution found!")
         except Exception as e:
