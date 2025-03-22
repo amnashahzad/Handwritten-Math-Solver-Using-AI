@@ -15,7 +15,6 @@ uploaded_files = st.file_uploader("Upload Math Equation Image(s)", type=["jpg", 
 reader = easyocr.Reader(['en'])
 
 def clean_equation(equation):
-    # Allow only valid characters
     allowed_chars = "0123456789+-*/=().x "
     cleaned = ''.join(char for char in equation if char in allowed_chars)
     return cleaned
@@ -39,4 +38,30 @@ if uploaded_files:
             equation = ''.join([text[1] for text in result])
 
         # Clean the extracted equation
-        c
+        cleaned_equation = clean_equation(equation)
+
+        # Display extracted equation
+        if cleaned_equation:
+            st.success(f"**Extracted Equation:** {cleaned_equation}")
+
+            try:
+                # ✅ Fix for tuple issue - Separate LHS and RHS properly
+                x = symbols('x')
+
+                if '=' in cleaned_equation:
+                    lhs, rhs = cleaned_equation.split('=')
+                    sympy_eq = Eq(sympify(lhs), sympify(rhs))
+                else:
+                    sympy_eq = sympify(cleaned_equation)
+
+                # ✅ Solve the equation
+                solution = solve(sympy_eq, x)
+
+                if solution:
+                    st.success(f"**Solution:** x = {solution[0]}")
+                else:
+                    st.error("❌ No solution found!")
+            except Exception as e:
+                st.error(f"⚠️ Error solving equation: {e}")
+        else:
+            st.error("❌ No valid equation detected. Please try a clearer image.")
