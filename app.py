@@ -17,7 +17,7 @@ reader = easyocr.Reader(['en'])
 def clean_equation(equation):
     allowed_chars = "0123456789+-*/=().x "
     cleaned = ''.join(char for char in equation if char in allowed_chars)
-    return cleaned
+    return cleaned.strip()
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
@@ -40,28 +40,31 @@ if uploaded_files:
         # Clean the extracted equation
         cleaned_equation = clean_equation(equation)
 
-        # Display extracted equation
-        if cleaned_equation:
-            st.success(f"**Extracted Equation:** {cleaned_equation}")
-
-            try:
-                # ✅ Fix for tuple issue - Separate LHS and RHS properly
-                x = symbols('x')
-
-                if '=' in cleaned_equation:
-                    lhs, rhs = cleaned_equation.split('=')
-                    sympy_eq = Eq(sympify(lhs), sympify(rhs))
-                else:
-                    sympy_eq = sympify(cleaned_equation)
-
-                # ✅ Solve the equation
-                solution = solve(sympy_eq, x)
-
-                if solution:
-                    st.success(f"**Solution:** x = {solution[0]}")
-                else:
-                    st.error("❌ No solution found!")
-            except Exception as e:
-                st.error(f"⚠️ Error solving equation: {e}")
-        else:
+        # ✅ Check if equation is empty
+        if not cleaned_equation:
             st.error("❌ No valid equation detected. Please try a clearer image.")
+            continue
+        
+        # Display extracted equation
+        st.success(f"**Extracted Equation:** {cleaned_equation}")
+
+        try:
+            # ✅ Fix for tuple issue - Separate LHS and RHS properly
+            x = symbols('x')
+
+            # ✅ Check for equal sign in equation
+            if '=' in cleaned_equation:
+                lhs, rhs = cleaned_equation.split('=')
+                sympy_eq = Eq(sympify(lhs), sympify(rhs))
+            else:
+                sympy_eq = sympify(cleaned_equation)
+
+            # ✅ Solve the equation
+            solution = solve(sympy_eq, x)
+
+            if solution:
+                st.success(f"**Solution:** x = {solution[0]}")
+            else:
+                st.error("❌ No solution found!")
+        except Exception as e:
+            st.error(f"⚠️ Error solving equation: {e}")
