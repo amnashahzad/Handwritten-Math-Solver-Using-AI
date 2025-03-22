@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import easyocr
-from sympy import sympify, solve, Eq, symbols
+from sympy import sympify, solve, symbols
 
 # Title
 st.title("📝 Handwritten Math Solver Using AI")
@@ -13,6 +13,12 @@ uploaded_files = st.file_uploader("Upload Math Equation Image(s)", type=["jpg", 
 
 # Initialize EasyOCR reader
 reader = easyocr.Reader(['en'])
+
+def clean_equation(equation):
+    # Allow only valid characters
+    allowed_chars = "0123456789+-*/=().x "
+    cleaned = ''.join(char for char in equation if char in allowed_chars)
+    return cleaned
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
@@ -32,15 +38,19 @@ if uploaded_files:
             result = reader.readtext(binary)
             equation = ''.join([text[1] for text in result])
 
+        # Clean the extracted equation
+        cleaned_equation = clean_equation(equation)
+
         # Display extracted equation
-        if equation:
-            st.success(f"**Extracted Equation:** {equation}")
+        if cleaned_equation:
+            st.success(f"**Extracted Equation:** {cleaned_equation}")
 
             try:
                 # Solve the equation
                 st.subheader("📐 Solving Equation...")
                 x = symbols('x')
-                sympy_eq = sympify(equation.replace('=', '-(') + ')')
+                # Replace '=' with '-(' for sympy processing
+                sympy_eq = sympify(cleaned_equation.replace('=', '-(') + ')')
                 solution = solve(sympy_eq, x)
 
                 if solution:
@@ -50,4 +60,4 @@ if uploaded_files:
             except Exception as e:
                 st.error(f"⚠️ Error solving equation: {e}")
         else:
-            st.error("❌ No equation detected. Please try a clearer image.")
+            st.error("❌ No valid equation detected. Please try a clearer image.")
