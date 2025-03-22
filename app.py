@@ -49,8 +49,15 @@ if uploaded_files:
                 # Solve the equation
                 st.subheader("📐 Solving Equation...")
                 x = symbols('x')
-                # Replace '=' with '-(' for sympy processing
-                sympy_eq = sympify(cleaned_equation.replace('=', '-(') + ')')
+                
+                # ✅ Fix tuple issue by replacing '=' with '-'
+                if '=' in cleaned_equation:
+                    lhs, rhs = cleaned_equation.split('=')
+                    equation_to_solve = f"({lhs}) - ({rhs})"
+                else:
+                    equation_to_solve = cleaned_equation
+
+                sympy_eq = sympify(equation_to_solve)
                 solution = solve(sympy_eq, x)
 
                 if solution:
