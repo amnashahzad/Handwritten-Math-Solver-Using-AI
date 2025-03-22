@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import easyocr
-from sympy import sympify, solve, symbols
+from sympy import sympify, Eq, solve, symbols
 
 # Title
 st.title("📝 Handwritten Math Solver Using AI")
@@ -39,32 +39,4 @@ if uploaded_files:
             equation = ''.join([text[1] for text in result])
 
         # Clean the extracted equation
-        cleaned_equation = clean_equation(equation)
-
-        # Display extracted equation
-        if cleaned_equation:
-            st.success(f"**Extracted Equation:** {cleaned_equation}")
-
-            try:
-                # Solve the equation
-                st.subheader("📐 Solving Equation...")
-                x = symbols('x')
-                
-                # ✅ Fix tuple issue by replacing '=' with '-'
-                if '=' in cleaned_equation:
-                    lhs, rhs = cleaned_equation.split('=')
-                    equation_to_solve = f"({lhs}) - ({rhs})"
-                else:
-                    equation_to_solve = cleaned_equation
-
-                sympy_eq = sympify(equation_to_solve)
-                solution = solve(sympy_eq, x)
-
-                if solution:
-                    st.success(f"**Solution:** x = {solution[0]}")
-                else:
-                    st.error("❌ No solution found!")
-            except Exception as e:
-                st.error(f"⚠️ Error solving equation: {e}")
-        else:
-            st.error("❌ No valid equation detected. Please try a clearer image.")
+        c
