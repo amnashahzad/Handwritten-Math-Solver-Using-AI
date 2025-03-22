@@ -15,22 +15,9 @@ uploaded_files = st.file_uploader("Upload Math Equation Image(s)", type=["jpg", 
 reader = easyocr.Reader(['en'])
 
 def clean_equation(equation):
-    # Replace common handwritten symbols with valid ones
-    equation = equation.replace('×', '*').replace('÷', '/').replace(' ', '')
-    
-    # Ensure multiplication is explicit (e.g., "2x" -> "2*x")
-    cleaned = []
-    for i, char in enumerate(equation):
-        if char.isdigit() and i + 1 < len(equation) and equation[i + 1] in 'x(':
-            cleaned.append(char + '*')
-        else:
-            cleaned.append(char)
-    cleaned = ''.join(cleaned)
-    
-    # Remove any invalid characters
-    allowed_chars = "0123456789+-*/=().x"
-    cleaned = ''.join(char for char in cleaned if char in allowed_chars)
-    
+    # ✅ Sirf allowed characters ko allow karein
+    allowed_chars = "0123456789+-*/=().x "
+    cleaned = ''.join(char for char in equation if char in allowed_chars)
     return cleaned.strip()
 
 if uploaded_files:
@@ -51,46 +38,34 @@ if uploaded_files:
             result = reader.readtext(binary)
             equation = ''.join([text[1] for text in result])
 
-        # Display raw extracted equation
-        st.write(f"**Raw Extracted Equation:** {equation}")
-
-        # Clean the extracted equation
+        # ✅ Clean and validate equation
         cleaned_equation = clean_equation(equation)
 
-        # Check if equation is empty
+        # ✅ Agar equation blank hai toh error handle karein
         if not cleaned_equation:
             st.error("❌ No valid equation detected. Please try a clearer image.")
             continue
-
-        # Check if the equation contains an equal sign
-        if '=' not in cleaned_equation:
-            st.error("❌ Equation must contain an equal sign (=).")
-            continue
-
-        # Display cleaned equation
-        st.success(f"**Cleaned Equation:** {cleaned_equation}")
+        
+        # ✅ Display extracted equation
+        st.success(f"**Extracted Equation:** {cleaned_equation}")
 
         try:
+            # ✅ Fix for tuple issue - Separate LHS and RHS properly
             x = symbols('x')
-            
-            # Split the equation into LHS and RHS
-            lhs, rhs = cleaned_equation.split('=')
-            
-            # Parse both sides of the equation
-            lhs_expr = sympify(lhs)
-            rhs_expr = sympify(rhs)
-            
-            # Create the equation
-            sympy_eq = Eq(lhs_expr, rhs_expr)
-            
-            # Solve the equation
+
+            # ✅ Equal sign ke bina equation ko handle karein
+            if '=' in cleaned_equation:
+                lhs, rhs = cleaned_equation.split('=')
+                sympy_eq = Eq(sympify(lhs), sympify(rhs))
+            else:
+                sympy_eq = sympify(cleaned_equation)
+
+            # ✅ Solve the equation
             solution = solve(sympy_eq, x)
-            
+
             if solution:
                 st.success(f"**Solution:** x = {solution[0]}")
             else:
                 st.error("❌ No solution found!")
-        except SyntaxError:
-            st.error("⚠️ Invalid equation syntax. Please ensure the equation is correctly formatted.")
         except Exception as e:
             st.error(f"⚠️ Error solving equation: {e}")
